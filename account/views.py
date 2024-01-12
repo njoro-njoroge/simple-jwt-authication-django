@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 
-from .models import Store
+from .models import Store, User
 
 from .serializers import UserSerializer, StoreSerializer
 
@@ -104,7 +104,7 @@ class StoreCreationView(APIView):
             user_id = decoded_token['user_id']
 
             # Check if the store with the given name already exists
-            existing_store = Store.objects.filter(store_name=store_name, user_id=user_id).first()
+            existing_store = Store.objects.filter(user_id=user_id).first()
 
             if existing_store:
                 return Response({'error': 'User already has a store'}, status=status.HTTP_400_BAD_REQUEST)
@@ -128,3 +128,10 @@ class StoreCreationView(APIView):
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             return Response({'error': f'Error decoding token: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetAllUsersAPIView(APIView):
+    def get(self, request):
+        all_users = User.objects.all()
+        user_serializer = UserSerializer(all_users, many=True)
+        return Response({'status_code': status.HTTP_200_OK, 'users': user_serializer.data}, status=status.HTTP_200_OK)
